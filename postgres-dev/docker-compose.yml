@@ -1,32 +1,73 @@
-version: '3.9'
+version: "3.9"
+
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres_server
-    restart: always
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: adminpass
-      POSTGRES_DB: mydb
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: dev1_db
+      MYSQL_USER: dev1_user
+      MYSQL_PASSWORD: dev1_pass
+    ports:
+      - "3306:3306"
+    networks:
+      mysql-net:
+        ipv4_address: 172.16.5.10
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dev2_db
+      POSTGRES_USER: dev2_user
+      POSTGRES_PASSWORD: dev2_pass
     ports:
       - "5432:5432"
     networks:
-      postgres_net:
-        ipv4_address: 172.0.6.10
+      postgres-net:
+        ipv4_address: 172.16.6.10
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:latest
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    networks:
+      - mysql-net
 
   adminer:
-    image: adminer
     container_name: adminer
-    restart: always
+    image: adminer:latest
+    restart: unless-stopped
     ports:
-      - "8082:8080"
+      - "8081:8080"
     networks:
-      postgres_net:
-        ipv4_address: 172.0.6.11
+      - postgres-net
+
+  tester:
+    container_name: tester
+    image: alpine
+    command: sh -c "sleep 3600"
+    networks:
+      - mysql-net
+      - postgres-net
 
 networks:
-  postgres_net:
+  mysql-net:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.0.6.0/24
+        - subnet: 172.16.5.0/24
+
+  postgres-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.6.0/24

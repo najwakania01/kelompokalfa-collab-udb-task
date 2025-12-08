@@ -1,0 +1,74 @@
+version: "3.9"
+
+networks:
+  mysql-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.0.5.0/24
+  postgres-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.0.6.0/24
+
+services:
+
+  # ===== Dev 1 - MySQL =====
+  mysql:
+    container_name: dev1_mysql
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: dev1_db
+      MYSQL_USER: dev1_user
+      MYSQL_PASSWORD: dev1_pass
+    networks:
+      mysql-net:
+        ipv4_address: 172.0.5.10
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-dev/data:/var/lib/mysql
+
+  phpmyadmin:
+    container_name: dev1_phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root123
+    networks:
+      mysql-net:
+        ipv4_address: 172.0.5.11
+    ports:
+      - "8080:80"
+
+  # ===== Dev 2 - Postgres =====
+  postgres:
+    container_name: dev2_postgres
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dev2_db
+      POSTGRES_USER: dev2_user
+      POSTGRES_PASSWORD: dev2_pass
+    networks:
+      postgres-net:
+        ipv4_address: 172.0.6.10
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-dev/data:/var/lib/postgresql/data
+
+  adminer:
+    container_name: dev2_adminer
+    image: adminer
+    restart: unless-stopped
+    networks:
+      postgres-net:
+        ipv4_address: 172.0.6.11
+    ports:
+      - "8081:8080"

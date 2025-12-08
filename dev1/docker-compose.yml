@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:latest                       # Menggunakan image MySQL terbaru
+    container_name: mysql_db                  # Nama container
+    environment:
+      MYSQL_ROOT_PASSWORD: root123            # Password root MySQL
+      MYSQL_DATABASE: contohdb                # Database default yang dibuat otomatis
+    ports:
+      - "3306:3306"                           # Mapping port (host:container)
+    networks:
+      mynet:
+        ipv4_address: 172.0.5.10              # IP khusus sesuai segmen
+
+  phpmyadmin:
+    image: phpmyadmin:latest                  # Image untuk phpMyAdmin
+    container_name: mysql_phpmyadmin
+    environment:
+      PMA_HOST: db                            # Host database, sesuai nama service mysql
+    ports:
+      - "8080:80"                             # Akses phpMyAdmin via browser port 8080
+    networks:
+      mynet:
+        ipv4_address: 172.0.5.11              # IP khusus untuk phpMyAdmin
+
+networks:
+  mynet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.0.5.0/24                # Segmen IP sesuai instruksi
+
